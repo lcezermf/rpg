@@ -7,9 +7,9 @@ defmodule RPG.CLI.Main do
     choice_hero()
   end
   defp welcome_message do
-    Shell.info("=== RPG ===")
-    Shell.info("Welcome to DeltaCity.")
-    Shell.info("You need to survive and find the exit.")
+    Shell.info("=== RPG ===\n")
+    Shell.info("Welcome to DeltaCity")
+    Shell.info("You need to survive and find the exit. \n")
   end
   defp choice_hero do
     RPG.CLI.HeroChoice.start()
