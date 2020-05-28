@@ -1,4 +1,6 @@
 defmodule RPG.Room.Action do
+  @type t :: %RPG.Room.Action{id: atom, label: String.t()}
+
   alias __MODULE__
 
   defstruct label: nil, id: nil
