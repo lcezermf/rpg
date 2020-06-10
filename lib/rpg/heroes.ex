@@ -27,7 +27,6 @@ defmodule RPG.Heroes do
         attack_description: "Hackear",
         damage_range: 35..40
       }
-
     ]
   end
 end

@@ -4,18 +4,11 @@ defmodule RPG.CLI.HeroChoice do
 
   def start do
     Shell.cmd("clear")
-    Shell.cmd("Start by choosing you hero:")
+    Shell.info("Start by choosing your hero:")
 
-    heroes = RPG.Heroes.all()
-    find_hero_by_index = &Enum.at(heroes, &1)
-
-    heroes
-    |> display_options()
-    |> generate_question()
-    |> Shell.prompt()
-    |> parse_answer()
-    |> find_hero_by_index.()
-    |> confirm_hero()
+    RPG.Heroes.all()
+    |> ask_for_option
+    |> confirm_hero
   end
 
   defp confirm_hero(chosen_hero) do
