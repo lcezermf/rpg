@@ -1,6 +1,8 @@
 defmodule RPG.CLI.BaseCommands do
   alias Mix.Shell.IO, as: Shell
 
+  @invalid_option {:error, "Invalid option"}
+
   def display_options(options) do
     options
     |> Enum.with_index(1)
@@ -26,7 +28,7 @@ defmodule RPG.CLI.BaseCommands do
   end
 
   def find_option_by_index!(index, options) do
-    Enum.at(options, index) || raise RPG.CLI.InvalidOptionError
+    Enum.at(options, index) || throw @invalid_option
   end
 
   def ask_for_index(options) do
@@ -52,10 +54,22 @@ defmodule RPG.CLI.BaseCommands do
   end
 
   def ask_for_option(options) do
-    index = ask_for_index(options)
-    chosen_option = Enum.at(options, index)
+    try do
+      options
+      |> display_options()
+      |> generate_question()
+      |> Shell.prompt()
+      |> parse_answer!()
+      |> find_option_by_index!(options)
+    catch
+      {:erro, message} ->
+        display_error(message)
+        ask_for_option(options)
+    end
+    # index = ask_for_index(options)
+    # chosen_option = Enum.at(options, index)
 
-    chosen_option || (display_invalid_option() && ask_for_option(options))
+    # chosen_option || (display_invalid_option() && ask_for_option(options))
   end
 
   def display_invalid_option do
