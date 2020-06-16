@@ -1,7 +1,7 @@
 defmodule RPG.CLI.BaseCommands do
+  use Monad.Operators
   alias Mix.Shell.IO, as: Shell
-
-  @invalid_option {:error, "Invalid option"}
+  import Monad.Result, only: [success: 1, success?: 1, error: 1, return: 1]
 
   def display_options(options) do
     options
@@ -10,7 +10,7 @@ defmodule RPG.CLI.BaseCommands do
       Shell.info("#{index} - #{option}")
     end)
 
-    options
+    return(options)
   end
 
   def generate_question(options) do
@@ -18,17 +18,18 @@ defmodule RPG.CLI.BaseCommands do
     "Which one? [#{options}]\n"
   end
 
-  def parse_answer!(answer) do
+  def parse_answer(answer) do
     case Integer.parse(answer) do
-      :error ->
-        raise RPG.CLI.InvalidOptionError
-      {option, _} ->
-        option - 1
+      :error -> error("Invalid Option")
+      {option, _} -> success(option - 1)
     end
   end
 
-  def find_option_by_index!(index, options) do
-    Enum.at(options, index) || throw @invalid_option
+  def find_option_by_index(index, options) do
+    case Enum.at(options, index) do
+      nil -> error("Invalid option")
+      chosen_option -> success(chosen_option)
+    end
   end
 
   def ask_for_index(options) do
@@ -38,7 +39,6 @@ defmodule RPG.CLI.BaseCommands do
       |> generate_question()
       |> Shell.prompt()
       |> Integer.parse()
-
     rescue
       e in RPG.CLI.InvalidOptionError ->
         display_error(e)
@@ -46,30 +46,28 @@ defmodule RPG.CLI.BaseCommands do
     end
   end
 
-  def display_error(e) do
+  def display_error(message) do
     Shell.cmd("clear")
-    Shell.error(e.message)
-    Shell.prompt("Press enter to continue...")
+    Shell.error(message)
+    Shell.prompt("Press Enter to continue.")
     Shell.cmd("clear")
   end
 
   def ask_for_option(options) do
-    try do
-      options
-      |> display_options()
-      |> generate_question()
-      |> Shell.prompt()
-      |> parse_answer!()
-      |> find_option_by_index!(options)
-    catch
-      {:erro, message} ->
-        display_error(message)
-        ask_for_option(options)
-    end
-    # index = ask_for_index(options)
-    # chosen_option = Enum.at(options, index)
+    result =
+      return(options)
+      ~>> (&display_options/1)
+      ~>> (&generate_question/1)
+      ~>> (&Shell.prompt/1)
+      ~>> (&parse_answer/1)
+      ~>> (&find_option_by_index(&1, options))
 
-    # chosen_option || (display_invalid_option() && ask_for_option(options))
+    if success?(result) do
+      result.value
+    else
+      display_error(result.error)
+      ask_for_option(options)
+    end
   end
 
   def display_invalid_option do
