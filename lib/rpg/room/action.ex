@@ -6,7 +6,7 @@ defmodule RPG.Room.Action do
   defstruct label: nil, id: nil
 
   def forward, do: %Action{id: :forward, label: "Move Forward."}
-  def reset, do: %Action{id: :rest, label: "Take better look and rest."}
+  def rest, do: %Action{id: :rest, label: "Take better look and rest."}
   def search, do: %Action{id: :search, label: "Searching, seek and destroy."}
 
   defimpl String.Chars do

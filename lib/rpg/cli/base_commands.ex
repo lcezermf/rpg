@@ -10,7 +10,7 @@ defmodule RPG.CLI.BaseCommands do
       Shell.info("#{index} - #{option}")
     end)
 
-    return(options)
+    options
   end
 
   def generate_question(options) do
@@ -46,6 +46,34 @@ defmodule RPG.CLI.BaseCommands do
     end
   end
 
+  # def display_error(message) do
+  #   Shell.cmd("clear")
+  #   Shell.error(message)
+  #   Shell.prompt("Press Enter to continue.")
+  #   Shell.cmd("clear")
+  # end
+
+  def ask_for_option(options) do
+    answer =
+      options
+      |> display_options()
+      |> generate_question()
+      |> Shell.prompt()
+
+    with {option, _} <- Integer.parse(answer),
+         chosen when chosen != nil <- Enum.at(options, option - 1) do
+      chosen
+    else
+      :error -> retry(options)
+      nil -> retry(options)
+    end
+  end
+
+  def retry(options) do
+    display_error("Invalid option")
+    ask_for_option(options)
+  end
+
   def display_error(message) do
     Shell.cmd("clear")
     Shell.error(message)
@@ -53,22 +81,22 @@ defmodule RPG.CLI.BaseCommands do
     Shell.cmd("clear")
   end
 
-  def ask_for_option(options) do
-    result =
-      return(options)
-      ~>> (&display_options/1)
-      ~>> (&generate_question/1)
-      ~>> (&Shell.prompt/1)
-      ~>> (&parse_answer/1)
-      ~>> (&find_option_by_index(&1, options))
+  # def ask_for_option(options) do
+  #   result =
+  #     return(options)
+  #     ~>> (&display_options/1)
+  #     ~>> (&generate_question/1)
+  #     ~>> (&Shell.prompt/1)
+  #     ~>> (&parse_answer/1)
+  #     ~>> (&find_option_by_index(&1, options))
 
-    if success?(result) do
-      result.value
-    else
-      display_error(result.error)
-      ask_for_option(options)
-    end
-  end
+  #   if success?(result) do
+  #     result.value
+  #   else
+  #     display_error(result.error)
+  #     ask_for_option(options)
+  #   end
+  # end
 
   def display_invalid_option do
     Shell.cmd("clear")
